@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { ReservaProvider } from './context/ReservaContext';
 import { AuthProvider } from './context/AuthContext';
 import RutaProtegida from './components/RutaProtegida';
-import { iniciarAnalytics, registrarVista } from './lib/analytics';
+import { registrarVista } from './lib/analytics';
 import Home from './pages/Home';
 import Resultados from './pages/Resultados';
 import Ficha from './pages/Ficha';
@@ -53,11 +53,10 @@ function SeguimientoDeRutas() {
   return null;
 }
 
+// iniciarAnalytics() se llama en main.jsx, antes de renderizar: aquí dentro
+// correría después del efecto de SeguimientoDeRutas y se perdería la primera
+// vista de cada sesión.
 export default function App() {
-  useEffect(() => {
-    iniciarAnalytics();
-  }, []);
-
   return (
     <BrowserRouter>
       <AuthProvider>
