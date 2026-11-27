@@ -204,7 +204,12 @@ export function etiquetaHora(hora) {
   return `${h12}:00 ${sufijo}`;
 }
 
-export function disponibilidad(localSlug, cancha, fechaISO) {
+// `simular` rellena la agenda con ocupación ficticia. Solo vale para los
+// complejos sembrados del catálogo inicial, que existen para que la demo no
+// se vea vacía. Un complejo registrado por su dueño debe mostrar su agenda
+// real: inventarle reservas haría que el panel y la vista pública se
+// contradigan.
+export function disponibilidad(localSlug, cancha, fechaISO, { simular = false } = {}) {
   if (!cancha) return [];
   return HORAS.map((hora) => {
     const s = semilla(`${localSlug}|${cancha.id}|${fechaISO}|${hora}`);
@@ -215,14 +220,23 @@ export function disponibilidad(localSlug, cancha, fechaISO) {
       etiqueta: etiquetaHora(hora),
       precio: precioDeHora(cancha, fechaISO, hora),
       valle: esHoraValle(fechaISO, hora),
-      libre: s % 100 >= umbral,
+      libre: simular ? s % 100 >= umbral : true,
     };
   });
 }
 
+// Los complejos sembrados no tienen propietario: son el catálogo inicial.
+export function esSembrado(local) {
+  return !local?.propietarioId;
+}
+
 export function cuposLibres(local, fechaISO) {
   return local.canchas.reduce(
-    (total, cancha) => total + disponibilidad(local.slug, cancha, fechaISO).filter((h) => h.libre).length,
+    (total, cancha) =>
+      total +
+      disponibilidad(local.slug, cancha, fechaISO, { simular: esSembrado(local) }).filter(
+        (h) => h.libre,
+      ).length,
     0,
   );
 }

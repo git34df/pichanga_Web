@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BarraInferior, CajaLateral, Movil, TopBar } from '../components/Layout';
 import { IconoAviso } from '../components/Iconos';
-import { disponibilidad, fechaLegible, proximosDias } from '../data/canchas';
+import { disponibilidad, esSembrado, fechaLegible, proximosDias } from '../data/canchas';
 import { useCatalogo } from '../context/CatalogoContext';
 import { useReserva } from '../context/ReservaContext';
 import { useAuth } from '../context/AuthContext';
@@ -54,7 +54,7 @@ export default function Horario() {
 
   const horarios = useMemo(() => {
     if (!local || !cancha) return [];
-    return disponibilidad(local.slug, cancha, fecha).map((h) => ({
+    return disponibilidad(local.slug, cancha, fecha, { simular: esSembrado(local) }).map((h) => ({
       ...h,
       libre: h.libre && !tomadas.includes(h.hora),
     }));
