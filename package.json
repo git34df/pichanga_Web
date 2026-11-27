@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "smoke": "node scripts/smoke.mjs",
     "guardas": "node scripts/guardas.mjs",
-    "test": "node scripts/smoke.mjs && node scripts/guardas.mjs && node scripts/bloqueos.mjs" ,
-    "bloqueos":"node scripts/bloqueos.mjs"
+    "test": "node scripts/smoke.mjs && node scripts/guardas.mjs && node scripts/bloqueos.mjs",
+    "bloqueos": "node scripts/bloqueos.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

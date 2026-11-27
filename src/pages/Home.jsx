@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Movil, NavInferior } from '../components/Layout';
 import LocalCard from '../components/LocalCard';
-import { DISTRITOS, HORAS, LOCALES, etiquetaHora, hoyISO } from '../data/canchas';
+import { DISTRITOS, HORAS, etiquetaHora, hoyISO } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { eventos } from '../lib/analytics';
 
 export default function Home() {
   const navegar = useNavigate();
+  const { locales, cargando } = useCatalogo();
   const [distrito, setDistrito] = useState(DISTRITOS[0].slug);
   const [fecha, setFecha] = useState(hoyISO());
   const [hora, setHora] = useState(20);
 
-  const destacados = LOCALES.filter((l) => l.rating >= 4.5).slice(0, 3);
+  const destacados = locales.filter((l) => l.rating >= 4.5).slice(0, 3);
 
   function buscar(e) {
     e.preventDefault();
@@ -133,9 +135,11 @@ export default function Home() {
         </div>
 
         <div className="rejilla" style={{ marginTop: 14 }}>
-          {destacados.map((local) => (
-            <LocalCard key={local.slug} local={local} fecha={fecha} />
-          ))}
+          {cargando ? (
+            <p className="texto-gris texto-sm">Cargando canchas…</p>
+          ) : (
+            destacados.map((local) => <LocalCard key={local.slug} local={local} fecha={fecha} />)
+          )}
         </div>
       </div>
 

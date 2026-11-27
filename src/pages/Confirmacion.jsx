@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { Movil } from '../components/Layout';
 import { IconoCheck } from '../components/Iconos';
-import { buscarLocal, fechaLegible } from '../data/canchas';
+import { fechaLegible } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { useReserva } from '../context/ReservaContext';
 import { eventos } from '../lib/analytics';
 
@@ -12,6 +13,7 @@ export default function Confirmacion() {
   const [params] = useSearchParams();
   const codigo = params.get('codigo');
   const { reservas, ultima } = useReserva();
+  const { buscar } = useCatalogo();
   // `ultima` cubre el instante entre confirmar el pago y que la lista se
   // recargue desde la base; si se llega por enlace directo, se busca en la lista.
   const reserva =
@@ -22,10 +24,10 @@ export default function Confirmacion() {
 
   useEffect(() => {
     if (reserva) {
-      const local = buscarLocal(reserva.localSlug);
+      const local = buscar(reserva.localSlug);
       if (local) eventos.reservaConfirmada({ codigo: reserva.codigo, local });
     }
-  }, [reserva]);
+  }, [reserva, buscar]);
 
   if (!reserva) return <Navigate to="/" replace />;
 

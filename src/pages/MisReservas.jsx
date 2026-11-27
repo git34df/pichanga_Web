@@ -1,18 +1,20 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Movil, NavInferior, TopBar } from '../components/Layout';
 import { IconoCancha } from '../components/Iconos';
-import { buscarLocal, fechaLegible, proximosDias } from '../data/canchas';
+import { fechaLegible, proximosDias } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { useReserva } from '../context/ReservaContext';
 import { eventos } from '../lib/analytics';
 
 export default function MisReservas() {
   const { reservas, iniciarBorrador } = useReserva();
   const navegar = useNavigate();
+  const { buscar } = useCatalogo();
 
   // Ruta de re-reserva: salta del paso 6 al paso 4 del flujo, conservando
   // local, cancha y hora, y moviendo la fecha a la misma semana siguiente.
   function repetir(reserva) {
-    const local = buscarLocal(reserva.localSlug);
+    const local = buscar(reserva.localSlug);
     if (!local) return;
     const siguiente = proximosDias(8).at(7)?.iso ?? reserva.fecha;
     iniciarBorrador({ ...reserva, fecha: siguiente });

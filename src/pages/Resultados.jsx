@@ -7,9 +7,9 @@ import {
   etiquetaHora,
   fechaLegible,
   hoyISO,
-  localesPorDistrito,
   nombreDistrito,
 } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { eventos } from '../lib/analytics';
 
 export default function Resultados() {
@@ -18,12 +18,14 @@ export default function Resultados() {
   const fecha = params.get('fecha') ?? hoyISO();
   const hora = Number(params.get('hora') ?? 20);
   const [tipo, setTipo] = useState('todos');
+  const { porDistrito, cargando } = useCatalogo();
 
-  const locales = localesPorDistrito(distrito, tipo);
+  const locales = porDistrito(distrito, tipo);
 
   useEffect(() => {
+    if (cargando) return;
     eventos.verResultados({ distrito, tipo, cantidad: locales.length });
-  }, [distrito, tipo, locales.length]);
+  }, [distrito, tipo, locales.length, cargando]);
 
   return (
     <Movil>
@@ -50,7 +52,9 @@ export default function Resultados() {
       </div>
 
       <div className="movil__cuerpo" style={{ paddingTop: 16 }}>
-        {locales.length === 0 ? (
+        {cargando ? (
+          <p className="texto-gris texto-sm">Cargando canchas…</p>
+        ) : locales.length === 0 ? (
           <div className="tarjeta" style={{ textAlign: 'center', padding: '28px 18px' }}>
             <p style={{ fontSize: 15, fontWeight: 600 }}>No hay canchas con ese filtro</p>
             <p className="texto-gris texto-sm" style={{ marginTop: 6, lineHeight: 1.45 }}>

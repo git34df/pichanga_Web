@@ -2,18 +2,22 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BarraInferior, CajaLateral, Movil, TopBar } from '../components/Layout';
 import { IconoCancha } from '../components/Iconos';
-import { buscarLocal, nombreDistrito, precioDesde } from '../data/canchas';
+import { nombreDistrito, precioDesde } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { eventos } from '../lib/analytics';
 import NoEncontrado from './NoEncontrado';
+import Cargando from './Cargando';
 
 export default function Ficha() {
   const { slug } = useParams();
-  const local = buscarLocal(slug);
+  const { buscar, cargando } = useCatalogo();
+  const local = buscar(slug);
 
   useEffect(() => {
     if (local) eventos.verLocal(local);
   }, [local]);
 
+  if (cargando) return <Cargando />;
   if (!local) return <NoEncontrado />;
 
   // El bloque de precio y reserva se muestra en dos sitios según el ancho:

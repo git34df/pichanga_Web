@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { ReservaProvider } from './context/ReservaContext';
 import { AuthProvider } from './context/AuthContext';
+import { CatalogoProvider } from './context/CatalogoContext';
 import RutaProtegida from './components/RutaProtegida';
 import { registrarVista } from './lib/analytics';
 import Home from './pages/Home';
@@ -13,6 +14,8 @@ import Confirmacion from './pages/Confirmacion';
 import MisReservas from './pages/MisReservas';
 import MiCuenta from './pages/MiCuenta';
 import PanelLocal from './pages/PanelLocal';
+import MiComplejo from './pages/MiComplejo';
+import Ingresos from './pages/Ingresos';
 import ParaLocales from './pages/ParaLocales';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
@@ -29,6 +32,8 @@ const TITULOS = [
   [/^\/mis-reservas$/, 'Mis reservas — Pichanga.pe'],
   [/^\/mi-cuenta$/, 'Mi cuenta — Pichanga.pe'],
   [/^\/panel$/, 'Panel del local — Pichanga.pe'],
+  [/^\/panel\/ingresos$/, 'Ingresos — Pichanga.pe'],
+  [/^\/panel\/complejo$/, 'Mi complejo — Pichanga.pe'],
   [/^\/para-locales$/, 'Pichanga.pe para locales'],
   [/^\/login$/, 'Iniciar sesión — Pichanga.pe'],
   [/^\/registro$/, 'Crear cuenta — Pichanga.pe'],
@@ -60,6 +65,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CatalogoProvider>
         <ReservaProvider>
           <SeguimientoDeRutas />
           <Routes>
@@ -116,10 +122,27 @@ export default function App() {
                 </RutaProtegida>
               }
             />
+            <Route
+              path="/panel/ingresos"
+              element={
+                <RutaProtegida rol="local">
+                  <Ingresos />
+                </RutaProtegida>
+              }
+            />
+            <Route
+              path="/panel/complejo"
+              element={
+                <RutaProtegida rol="local">
+                  <MiComplejo />
+                </RutaProtegida>
+              }
+            />
 
             <Route path="*" element={<NoEncontrado />} />
           </Routes>
         </ReservaProvider>
+        </CatalogoProvider>
       </AuthProvider>
     </BrowserRouter>
   );

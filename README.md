@@ -26,7 +26,8 @@ Otros comandos:
 | `npm run lint` | Linter |
 | `npm run smoke` | Monta cada pantalla y verifica que renderiza sin errores |
 | `npm run guardas` | Comprueba el control de acceso: quién puede entrar a cada ruta |
-| `npm test` | Las dos anteriores, en orden |
+| `npm run bloqueos` | Prueba el bloqueo y liberación de horarios desde el panel |
+| `npm test` | Las tres anteriores, en orden |
 
 ---
 
@@ -112,8 +113,11 @@ Lo que protege los datos son las políticas de Row Level Security, no esa clave.
 
 ### Las tablas
 
-El esquema completo está en [`supabase/esquema.sql`](supabase/esquema.sql).
-Pégalo en el **SQL Editor** de Supabase y ejecútalo. Crea dos tablas:
+En el **SQL Editor** de Supabase hay que ejecutar dos archivos, en este orden:
+[`supabase/esquema.sql`](supabase/esquema.sql) y luego
+[`supabase/bloqueos.sql`](supabase/bloqueos.sql).
+
+El primero crea dos tablas:
 
 **`perfiles`** — una fila por usuario, creada automáticamente por un trigger al
 registrarse. Guarda el rol (`jugador` o `local`), nombre, celular y, para las
@@ -132,9 +136,20 @@ Políticas de Row Level Security:
 | Local | Leer las reservas cuyo `local_slug` coincide con el de su perfil |
 | Nadie desde el cliente | Modificar o borrar reservas, ni cambiar su propio rol |
 
-La disponibilidad se consulta con la función `horarios_ocupados()`, que devuelve
-únicamente las horas tomadas. Así la grilla puede marcar lo ocupado sin exponer
-quién reservó ni su teléfono.
+El segundo agrega **`bloqueos`**: las horas que el local cierra por
+mantenimiento, torneos o uso propio. Un trigger impide bloquear una hora que ya
+tiene una reserva pagada, porque eso dejaría sin cancha a alguien que ya pagó.
+
+La disponibilidad se consulta con la función `horarios_ocupados()`, que une
+reservas y bloqueos y devuelve únicamente las horas tomadas. Así la grilla puede
+marcar lo ocupado sin exponer quién reservó, su teléfono ni el motivo del
+bloqueo.
+
+### Bloquear horarios
+
+En el panel, el calendario es interactivo: un clic sobre una hora libre la
+bloquea y otro clic la libera. Las horas con reserva pagada no son botones, así
+que no hay forma de quitarlas desde la interfaz.
 
 ### Por qué `local_slug` se asigna a mano
 

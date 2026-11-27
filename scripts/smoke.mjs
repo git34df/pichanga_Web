@@ -43,6 +43,7 @@ const { renderToString } = await import('react-dom/server');
 const { MemoryRouter, Routes, Route } = await import('react-router-dom');
 const { ReservaProvider } = await servidor.ssrLoadModule('/src/context/ReservaContext.jsx');
 const { AuthProvider } = await servidor.ssrLoadModule('/src/context/AuthContext.jsx');
+const { CatalogoProvider } = await servidor.ssrLoadModule('/src/context/CatalogoContext.jsx');
 
 const PANTALLAS = [
   ['Home', '/src/pages/Home.jsx', '/', '/', 'Tu cancha'],
@@ -51,7 +52,9 @@ const PANTALLAS = [
   ['Horario', '/src/pages/Horario.jsx', '/local/:slug/horarios', '/local/la-bombonera/horarios', 'Elige tu horario'],
   ['MisReservas', '/src/pages/MisReservas.jsx', '/mis-reservas', '/mis-reservas', 'Mis reservas'],
   // Sin sesión no hay local asignado: debe mostrar el estado de cuenta en revisión.
-  ['PanelLocal (sin local)', '/src/pages/PanelLocal.jsx', '/panel', '/panel', 'en revisión'],
+  ['PanelLocal (sin complejo)', '/src/pages/PanelLocal.jsx', '/panel', '/panel', null],
+  ['MiComplejo', '/src/pages/MiComplejo.jsx', '/panel/complejo', '/panel/complejo', null],
+  ['Ingresos', '/src/pages/Ingresos.jsx', '/panel/ingresos', '/panel/ingresos', null],
   ['NoEncontrado', '/src/pages/NoEncontrado.jsx', '*', '/ruta-inexistente', 'No encontramos'],
   ['Login', '/src/pages/Login.jsx', '/login', '/login', 'Iniciar sesión'],
   ['Registro jugador', '/src/pages/Registro.jsx', '/registro', '/registro', 'Crear cuenta'],
@@ -79,6 +82,9 @@ for (const [nombre, modulo, patron, ruta, esperado] of PANTALLAS) {
           AuthProvider,
           null,
           React.createElement(
+            CatalogoProvider,
+            null,
+            React.createElement(
             ReservaProvider,
             null,
             React.createElement(
@@ -86,6 +92,7 @@ for (const [nombre, modulo, patron, ruta, esperado] of PANTALLAS) {
               null,
               React.createElement(Route, { path: patron, element: React.createElement(Pantalla) }),
             ),
+          ),
           ),
         ),
       ),

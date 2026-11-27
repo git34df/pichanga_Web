@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { buscarLocal, etiquetaHora, fechaLegible, HORAS, proximosDias } from '../data/canchas';
+import { etiquetaHora, fechaLegible, HORAS, proximosDias } from '../data/canchas';
+import { miComplejo } from '../data/catalogo';
+import { CabeceraPanel } from '../components/CabeceraPanel';
 import { listarReservasDeLocal } from '../data/reservas';
 import { bloquear, claveRanura, desbloquear, listarBloqueos } from '../data/bloqueos';
 import { useAuth } from '../context/AuthContext';
@@ -10,11 +12,14 @@ import { modoDemo } from '../lib/supabase';
 const COMISION_PCT = 0.08;
 
 export default function PanelLocal() {
-  const { usuario, localSlug } = useAuth();
+  const { usuario } = useAuth();
   const { reservas: reservasDemo } = useReserva();
 
   const dias = useMemo(() => proximosDias(7), []);
-  const local = localSlug ? buscarLocal(localSlug) : null;
+  // El complejo ya no se asigna desde el perfil: es el que esta cuenta creó.
+  const [local, setLocal] = useState(null);
+  const [cargandoLocal, setCargandoLocal] = useState(true);
+  const localSlug = local?.slug ?? null;
   const [canchaId, setCanchaId] = useState(null);
   const [reservas, setReservas] = useState([]);
   const [bloqueos, setBloqueos] = useState([]);
@@ -25,6 +30,18 @@ export default function PanelLocal() {
   // Sin selección explícita se muestra la primera cancha: se deriva en el
   // render en vez de fijarla con un efecto, que provocaría un render extra.
   const cancha = local?.canchas.find((c) => c.id === canchaId) ?? local?.canchas[0];
+
+  useEffect(() => {
+    let vigente = true;
+    miComplejo(usuario).then(({ datos }) => {
+      if (!vigente) return;
+      setLocal(datos);
+      setCargandoLocal(false);
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [usuario]);
 
   const recargarBloqueos = useCallback(async () => {
     if (!localSlug) return;
@@ -125,24 +142,31 @@ export default function PanelLocal() {
     setGuardando(null);
   }
 
-  // Cuenta de local sin complejo asignado: el administrador todavía no la validó.
-  if (!localSlug || !local) {
+  if (cargandoLocal) {
     return (
       <div className="panel">
-        <Cabecera nombre={usuario?.nombre} />
+        <CabeceraPanel nombre={usuario?.nombre} />
+        <main className="panel__main">
+          <p className="texto-gris texto-sm">Cargando tu complejo…</p>
+        </main>
+      </div>
+    );
+  }
+
+  // Cuenta de local que todavía no ha registrado su complejo.
+  if (!local) {
+    return (
+      <div className="panel">
+        <CabeceraPanel nombre={usuario?.nombre} />
         <main className="panel__main">
           <div className="tarjeta" style={{ maxWidth: 560, padding: 24 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 700 }}>Tu cuenta está en revisión</h1>
+            <h1 style={{ fontSize: 20, fontWeight: 700 }}>Aún no registras tu complejo</h1>
             <p className="texto-gris texto-sm" style={{ marginTop: 10, lineHeight: 1.55 }}>
-              Registramos tu cuenta como complejo deportivo, pero todavía no tiene un local
-              asignado. Verificamos cada local antes de publicar sus canchas, para que nadie pueda
-              reclamar un complejo que no administra.
+              Para recibir reservas necesitas registrar tu complejo y cargar tus canchas con sus
+              precios. Toma un par de minutos y lo puedes editar cuando quieras.
             </p>
-            <p className="texto-gris texto-sm" style={{ marginTop: 12, lineHeight: 1.55 }}>
-              En cuanto se asigne, aquí verás el calendario, la ocupación y los ingresos.
-            </p>
-            <Link to="/" className="btn btn--contorno" style={{ marginTop: 18, width: 'auto' }}>
-              Volver al inicio
+            <Link to="/panel/complejo" className="btn btn--primario" style={{ marginTop: 18, width: 'auto' }}>
+              Registrar mi complejo
             </Link>
           </div>
         </main>
@@ -152,7 +176,7 @@ export default function PanelLocal() {
 
   return (
     <div className="panel">
-      <Cabecera nombre={local.nombre} />
+      <CabeceraPanel nombre={local.nombre} />
 
       <main className="panel__main">
         <div className="fila-entre" style={{ alignItems: 'baseline', flexWrap: 'wrap' }}>
@@ -302,40 +326,6 @@ export default function PanelLocal() {
         </section>
       </main>
     </div>
-  );
-}
-
-function Cabecera({ nombre }) {
-  const { cerrarSesion } = useAuth();
-  return (
-    <header className="panel__barra">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-        <Link
-          to="/"
-          style={{
-            fontFamily: 'var(--titulo)',
-            fontWeight: 700,
-            fontSize: 19,
-            textDecoration: 'none',
-            color: 'var(--tinta)',
-          }}
-        >
-          Pichanga<span style={{ color: 'var(--verde)' }}>.pe</span>{' '}
-          <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--gris)' }}>para locales</span>
-        </Link>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <span className="texto-gris texto-sm">{nombre}</span>
-        <button
-          type="button"
-          className="btn btn--neutro"
-          style={{ width: 'auto', minHeight: 38 }}
-          onClick={cerrarSesion}
-        >
-          Cerrar sesión
-        </button>
-      </div>
-    </header>
   );
 }
 

@@ -45,8 +45,6 @@ const LOCAL = {
   rol: 'local',
   localSlug: 'la-bombonera',
 };
-// Cuenta de local creada pero todavía sin complejo asignado.
-const LOCAL_SIN_ASIGNAR = { ...LOCAL, id: 'demo-3', localSlug: null };
 
 async function visitar(ruta, sesion) {
   dom.window.localStorage.clear();
@@ -72,8 +70,10 @@ const CASOS = [
   ['Jugador, /panel', '/panel', JUGADOR, 'no es para tu cuenta'],
   ['Jugador, /mis-reservas', '/mis-reservas', JUGADOR, 'Mis reservas'],
   ['Jugador, /mi-cuenta', '/mi-cuenta', JUGADOR, 'Mi cuenta'],
-  ['Local con complejo, /panel', '/panel', LOCAL, 'Calendario de ocupación'],
-  ['Local sin asignar, /panel', '/panel', LOCAL_SIN_ASIGNAR, 'Tu cuenta está en revisión'],
+  ['Local, /panel', '/panel', LOCAL, 'complejo'],
+  ['Local, /panel/complejo', '/panel/complejo', LOCAL, 'complejo'],
+  ['Local, /panel/ingresos', '/panel/ingresos', LOCAL, 'complejo'],
+  ['Jugador, /panel/ingresos', '/panel/ingresos', JUGADOR, 'no es para tu cuenta'],
   ['Público: /', '/', null, 'Tu cancha'],
   ['Público: /para-locales', '/para-locales', null, 'Tus canchas llenas'],
   ['Público: ficha del local', '/local/la-bombonera', null, 'La Bombonera'],

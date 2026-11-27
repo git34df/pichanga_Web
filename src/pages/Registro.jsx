@@ -40,7 +40,7 @@ export default function Registro() {
       setAviso('Te enviamos un correo para confirmar la cuenta. Ábrelo y luego inicia sesión.');
       return;
     }
-    navegar(redirect || (esLocal ? '/panel' : '/'), { replace: true });
+    navegar(redirect || (esLocal ? '/panel/complejo' : '/'), { replace: true });
   }
 
   if (aviso) {

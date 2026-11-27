@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BarraInferior, CajaLateral, Movil, TopBar } from '../components/Layout';
 import { IconoAviso } from '../components/Iconos';
-import { buscarLocal, disponibilidad, fechaLegible, proximosDias } from '../data/canchas';
+import { disponibilidad, fechaLegible, proximosDias } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { useReserva } from '../context/ReservaContext';
 import { useAuth } from '../context/AuthContext';
 import { modoDemo } from '../lib/supabase';
@@ -10,21 +11,25 @@ import { horariosOcupados } from '../data/reservas';
 import { horasBloqueadasDemo } from '../data/bloqueos';
 import { eventos } from '../lib/analytics';
 import NoEncontrado from './NoEncontrado';
+import Cargando from './Cargando';
 
 export default function Horario() {
   const { slug } = useParams();
   const navegar = useNavigate();
   const { iniciarBorrador } = useReserva();
   const { autenticado } = useAuth();
-  const local = buscarLocal(slug);
+  const { buscar, cargando: cargandoCatalogo } = useCatalogo();
+  const local = buscar(slug);
 
   const dias = useMemo(() => proximosDias(5), []);
   const [fecha, setFecha] = useState(dias[0].iso);
-  const [canchaId, setCanchaId] = useState(local?.canchas[0].id ?? '');
+  const [canchaId, setCanchaId] = useState('');
   const [horaSel, setHoraSel] = useState(null);
   const [tomadas, setTomadas] = useState([]);
 
-  const cancha = local?.canchas.find((c) => c.id === canchaId);
+  // El catálogo llega de forma asíncrona, así que la cancha por defecto se
+  // deriva en el render en lugar de fijarse al montar.
+  const cancha = local?.canchas.find((c) => c.id === canchaId) ?? local?.canchas[0];
 
   // Las horas ocupadas salen de la ocupación simulada del catálogo más lo
   // que haya en la base: reservas pagadas y horas que el local bloqueó.
@@ -49,12 +54,13 @@ export default function Horario() {
 
   const horarios = useMemo(() => {
     if (!local || !cancha) return [];
-    return disponibilidad(local.slug, cancha.id, fecha).map((h) => ({
+    return disponibilidad(local.slug, cancha, fecha).map((h) => ({
       ...h,
       libre: h.libre && !tomadas.includes(h.hora),
     }));
   }, [local, cancha, fecha, tomadas]);
 
+  if (cargandoCatalogo) return <Cargando />;
   if (!local || !cancha) return <NoEncontrado />;
 
   const elegido = horarios.find((h) => h.hora === horaSel);
@@ -130,7 +136,7 @@ export default function Horario() {
                       key={c.id}
                       type="button"
                       className="chip"
-                      aria-pressed={c.id === canchaId}
+                      aria-pressed={c.id === cancha.id}
                       onClick={() => {
                         setCanchaId(c.id);
                         setHoraSel(null);

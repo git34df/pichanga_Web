@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Movil, TopBar } from '../components/Layout';
 import { IconoCancha } from '../components/Iconos';
-import { buscarLocal, fechaLegible } from '../data/canchas';
+import { fechaLegible } from '../data/canchas';
+import { useCatalogo } from '../context/CatalogoContext';
 import { useReserva } from '../context/ReservaContext';
 import { useAuth } from '../context/AuthContext';
 import { eventos } from '../lib/analytics';
@@ -17,6 +18,7 @@ export default function Checkout() {
   const navegar = useNavigate();
   const { borrador, confirmar } = useReserva();
   const { usuario } = useAuth();
+  const { buscar } = useCatalogo();
   const [metodo, setMetodo] = useState('yape');
   // Los datos de contacto vienen de la cuenta, pero siguen siendo editables
   // por si el partido lo coordina otra persona del grupo.
@@ -47,7 +49,7 @@ export default function Checkout() {
       return;
     }
 
-    const local = buscarLocal(reserva.localSlug);
+    const local = buscar(reserva.localSlug);
     eventos.compra({
       codigo: reserva.codigo,
       local,

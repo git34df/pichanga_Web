@@ -156,16 +156,22 @@ export const HORAS = [14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
 // --- utilidades ---
 
+export function nombreTipo(tipo) {
+  return TIPOS.find((t) => t.id === tipo)?.nombre ?? tipo;
+}
+
 export function nombreDistrito(slug) {
   return DISTRITOS.find((d) => d.slug === slug)?.nombre ?? slug;
 }
 
-export function buscarLocal(slug) {
-  return LOCALES.find((l) => l.slug === slug) ?? null;
+// El catálogo se pasa como argumento porque desde esta versión vive en la
+// base de datos: LOCALES solo queda como semilla del modo demo.
+export function buscarLocal(slug, catalogo = LOCALES) {
+  return catalogo.find((l) => l.slug === slug) ?? null;
 }
 
-export function localesPorDistrito(distritoSlug, tipo = 'todos') {
-  return LOCALES.filter(
+export function localesPorDistrito(distritoSlug, tipo = 'todos', catalogo = LOCALES) {
+  return catalogo.filter(
     (l) =>
       l.distritoSlug === distritoSlug &&
       (tipo === 'todos' || l.canchas.some((c) => c.tipo === tipo)),
@@ -198,11 +204,10 @@ export function etiquetaHora(hora) {
   return `${h12}:00 ${sufijo}`;
 }
 
-export function disponibilidad(localSlug, canchaId, fechaISO) {
-  const cancha = buscarLocal(localSlug)?.canchas.find((c) => c.id === canchaId);
+export function disponibilidad(localSlug, cancha, fechaISO) {
   if (!cancha) return [];
   return HORAS.map((hora) => {
-    const s = semilla(`${localSlug}|${canchaId}|${fechaISO}|${hora}`);
+    const s = semilla(`${localSlug}|${cancha.id}|${fechaISO}|${hora}`);
     // Las horas pico (18–22) se llenan más que las horas valle.
     const umbral = hora >= 18 && hora <= 22 ? 70 : 35;
     return {
@@ -217,7 +222,7 @@ export function disponibilidad(localSlug, canchaId, fechaISO) {
 
 export function cuposLibres(local, fechaISO) {
   return local.canchas.reduce(
-    (total, cancha) => total + disponibilidad(local.slug, cancha.id, fechaISO).filter((h) => h.libre).length,
+    (total, cancha) => total + disponibilidad(local.slug, cancha, fechaISO).filter((h) => h.libre).length,
     0,
   );
 }
